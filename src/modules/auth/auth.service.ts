@@ -5,12 +5,17 @@ import { Repository } from 'typeorm';
 import { OtpEntity } from '../user/entities/otp.entity';
 import { checkOtpDto, sendOtpDto } from './dto/auth.dto';
 import { randomInt } from 'crypto';
+import { TokenPailod } from './types/paylod';
+import { JwtService } from '@nestjs/jwt';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class AuthService {
   constructor(
     @InjectRepository(UserEntity) private readonly userRepository:Repository<UserEntity>,
-    @InjectRepository(OtpEntity) private readonly otpRepository:Repository<OtpEntity>
+    @InjectRepository(OtpEntity) private readonly otpRepository:Repository<OtpEntity>,
+    private jwtSirvis:JwtService,
+    private configServis:ConfigService
   ){}
 
   sendOtp=async(sendOtpDto:sendOtpDto)=>{
@@ -47,7 +52,10 @@ export class AuthService {
           verifay_mobail:true
         })
       }
+      const {acssesToken,refreshToken}=this.makeTokenForUser({mobile:mobile,userId:user.id})
       return {
+        acssesToken,
+        refreshToken,
         message:"you logged_in sucessfuly"
       }
   }
@@ -68,6 +76,19 @@ export class AuthService {
      await this.otpRepository.save(otp)
      user.otpId=otp.id
      await this.userRepository.save(user)
+  }
+  makeTokenForUser(pailod:TokenPailod){
+    const acssesToken= this.jwtSirvis.sign(pailod,{
+      secret:this.configServis.get("Jwt.acsessTokenSecret"),
+      expiresIn:"30d"
+    })
+    const refreshToken= this.jwtSirvis.sign(pailod,{
+      secret:this.configServis.get("Jwt.refreshTokenSecret"),
+      expiresIn:"1y"
+    })
+    return{
+      acssesToken,refreshToken
+    }
   }
 
 }
