@@ -1,6 +1,6 @@
 import { Body, Controller, Post } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { sendOtpDto } from './dto/auth.dto';
+import { checkOtpDto, sendOtpDto } from './dto/auth.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -11,5 +11,7 @@ export class AuthController {
    return this.authService.sendOtp(sendOtpDto)
   }
   @Post('/checkOtp')
-  checkOtp(){}
+  checkOtp(@Body() checkOtpDto:checkOtpDto){
+    return this.authService.checkOtp(checkOtpDto)
+  }
 }
