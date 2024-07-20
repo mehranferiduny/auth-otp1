@@ -9,7 +9,11 @@ export class UserEntity {
   first_Name:string;
   @Column({nullable:true})
   last_Name:string;
-  @Column()
+  @Column({nullable:true})
+  email:string;
+  @Column({nullable:true})
+  password:string;
+  @Column({nullable:true})
   mobail:string;
   @Column({default:false})
   verifay_mobail:boolean;
