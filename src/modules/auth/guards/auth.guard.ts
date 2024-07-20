@@ -16,7 +16,8 @@ export class AuthGuard implements CanActivate {
     const httpContex = context.switchToHttp();
     const request: Request = httpContex.getRequest<Request>();
     const token = this.extarcToken(request);
-    request.user = await this.authServic.validateAcsesToken(token);
+    const user=await this.authServic.validateAcsesToken(token);
+    request.user = user;
     return true;
   }
 
@@ -29,6 +30,7 @@ export class AuthGuard implements CanActivate {
     const [bearer, token] = authorization.split(" ");
     if (bearer.toLowerCase() !== "bearer" || !token || !isJWT(token))
       throw new UnauthorizedException("login on accont");
+    
     return token;
   }
 }
