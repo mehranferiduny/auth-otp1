@@ -18,7 +18,7 @@ export class AuthService {
     private configServis:ConfigService
   ){}
 
-  sendOtp=async(sendOtpDto:sendOtpDto)=>{
+  async sendOtp(sendOtpDto:sendOtpDto){
    const {mobile}=sendOtpDto;
   
    let user=await this.userRepository.findOneBy({mobail:mobile})
@@ -34,7 +34,7 @@ export class AuthService {
     message:"send code is sucsesfuly",
    }
   }
-  checkOtp=async(checkOtpDto:checkOtpDto)=>{
+  async checkOtp(checkOtpDto:checkOtpDto){
     const {mobile,code}=checkOtpDto
     const user=await this.userRepository.findOne({
       where:{mobail:mobile},
@@ -59,7 +59,7 @@ export class AuthService {
         message:"you logged_in sucessfuly"
       }
   }
-  createOtpUser=async(user:UserEntity)=>{
+  async createOtpUser(user:UserEntity){
     const code =randomInt(10000,99999).toString();
     const ExpiresIn=new Date(new Date().getTime() +1000 *60 *2);
 
@@ -88,6 +88,22 @@ export class AuthService {
     })
     return{
       acssesToken,refreshToken
+    }
+  }
+
+  async validateAcsesToken(token:string){
+    try {
+      const paylod=this.jwtSirvis.verify<TokenPailod>(token,{
+        secret:this.configServis.get("Jwt.acsessTokenSecret")
+      })
+      if(typeof paylod=="object" && paylod?.userId){
+          const user=await this.userRepository.findOneBy({id:paylod.userId})
+          if(!user) throw new UnauthorizedException("login on Accont")
+            return user
+      }
+      throw new UnauthorizedException("login on Accont")
+    } catch (error) {
+      throw new UnauthorizedException("login on Accont")
     }
   }
 
