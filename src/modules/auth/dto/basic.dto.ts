@@ -1,4 +1,7 @@
 import { IsEmail, IsMobilePhone, IsString, Length } from "class-validator";
+import { ConfirmdPasswordd } from "src/common/decorators/password.decorator";
+
+
 
 export class singUpDto {
   @IsString()
@@ -18,6 +21,7 @@ export class singUpDto {
   })
   password: string;
   @IsString()
+  @ConfirmdPasswordd("password")
   confirm_password: string;
 }
 
@@ -31,3 +35,7 @@ export class logInDto {
   })
   password: string;
 }
+function ConfirmdPassword(arg0: string): (target: singUpDto, propertyKey: "confirm_password") => void {
+  throw new Error("Function not implemented.");
+}
+
