@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserEntity } from '../user/entities/user.entity';
 import { Repository } from 'typeorm';
@@ -8,6 +8,8 @@ import { randomInt } from 'crypto';
 import { TokenPailod } from './types/paylod';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
+import { singUpDto } from './dto/basic.dto';
+import { genSaltSync,hashSync } from 'bcrypt';
 
 @Injectable()
 export class AuthService {
@@ -77,6 +79,30 @@ export class AuthService {
      user.otpId=otp.id
      await this.userRepository.save(user)
   }
+
+  async singUpUser(singUpDto:singUpDto){
+    const {email,first_name,last_name,mobail,password,confirm_password}=singUpDto
+    await this.emailCheck(email)
+    await this.mobailCheck(mobail)
+    if(password !== confirm_password) throw new BadRequestException("passsword and confirmPassword sould be ecuales")
+    const salt=genSaltSync(10)
+    const hashedPassword=hashSync(password,salt)
+    const user=this.userRepository.create({
+      first_Name:first_name,
+      last_Name:last_name,
+      email,
+      mobail:mobail,
+      verifay_mobail:false,
+      password:hashedPassword
+     })
+     await this.userRepository.save(user)
+     return{
+      message:"user singup sucsesfuly"
+     }
+
+      
+
+  }
   makeTokenForUser(pailod:TokenPailod){
     const acssesToken= this.jwtSirvis.sign(pailod,{
       secret:this.configServis.get("Jwt.acsessTokenSecret"),
@@ -105,6 +131,16 @@ export class AuthService {
     } catch (error) {
       throw new UnauthorizedException("login on Accont")
     }
+  }
+
+
+  async emailCheck(email:string){
+    const user=await this.userRepository.findOneBy({email:email})
+    if(user) throw new ConflictException("email is alredy exist")
+  }
+  async mobailCheck(mobail:string){
+    const user=await this.userRepository.findOneBy({mobail:mobail})
+    if(user) throw new ConflictException("mobail number is alredy exist")
   }
 
 }
