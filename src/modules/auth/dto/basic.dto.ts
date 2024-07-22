@@ -35,7 +35,5 @@ export class logInDto {
   })
   password: string;
 }
-function ConfirmdPassword(arg0: string): (target: singUpDto, propertyKey: "confirm_password") => void {
-  throw new Error("Function not implemented.");
-}
+
 

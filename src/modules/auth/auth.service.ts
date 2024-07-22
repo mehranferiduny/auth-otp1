@@ -8,8 +8,8 @@ import { randomInt } from 'crypto';
 import { TokenPailod } from './types/paylod';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
-import { singUpDto } from './dto/basic.dto';
-import { genSaltSync,hashSync } from 'bcrypt';
+import { logInDto, singUpDto } from './dto/basic.dto';
+import { compareSync, genSaltSync,hashSync } from 'bcrypt';
 
 @Injectable()
 export class AuthService {
@@ -101,6 +101,25 @@ export class AuthService {
      }
 
       
+
+  }
+  async logInUser(loginDto:logInDto){
+    const {email,password}=loginDto
+    const user=await this.userRepository.findOneBy({email})
+    if(!user) throw new UnauthorizedException("Username Or Password Incarent!")
+    const isMach= compareSync(password,user.password)  
+  if(!isMach) throw new UnauthorizedException("Username Or Password Incarent!")
+    if(!user.verifay_mobail){
+      await this.userRepository.update({id:user.id},{
+        verifay_mobail:true
+      })
+    }
+    const {acssesToken,refreshToken}=this.makeTokenForUser({mobile:user.mobail,userId:user.id})
+    return {
+      acssesToken,
+      refreshToken,
+      message:"you logged_in sucessfuly"
+    }
 
   }
   makeTokenForUser(pailod:TokenPailod){
